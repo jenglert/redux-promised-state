@@ -11,7 +11,7 @@ export const toPromiseOption = (action: any): PromiseOption<any> => ({
   value: action.value
 })
 
-export const promiseOptionMiddleware: Middleware<any, any, any> = (store: any) => (next: any) => (
+export const promiseOptionMiddleware: Middleware<any, any> = (store: any) => (next: any) => (
   action: any
 ) => {
   if (!isPromise(action.promise)) {
@@ -27,7 +27,8 @@ export const promiseOptionMiddleware: Middleware<any, any, any> = (store: any) =
   })
 
   action.promise.then((result: any) => {
-    store.disptach({
+    store.dispatch({
+      type: action.type,
       isPresent: true,
       value: result
     })
