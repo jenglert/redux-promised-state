@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`redux-promise-option should throw an exception if "promise" is not a promise 1`] = `"Action property \\"promise\\" must be a promise or undefined"`;

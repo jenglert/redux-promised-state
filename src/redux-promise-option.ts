@@ -1,5 +1,6 @@
 import isPromise from 'is-promise'
-import { Middleware } from 'redux'
+import { Dispatch, MiddlewareAPI, AnyAction, Action } from 'redux'
+import FluxStandardAction from './FluxStandardAction'
 
 export enum PromiseOptionState {
   Running,
@@ -7,32 +8,51 @@ export enum PromiseOptionState {
   Failed
 }
 
-export interface ApplyFuncParams<T, R> {
+export interface OnTransitionParams<T, R> {
   running: () => R
   finished: (apiResult: T) => R
   failed: () => R
 }
 
-type ApplyFunc<T, R> = (callbacks: ApplyFuncParams<T, R>) => R
-
-export interface PromiseOption<T, R> {
-  unsafeResult: T
+export interface PromisedState<T> {
+  unsafeResult: T | null
   state: PromiseOptionState
-  apply: ApplyFunc<T, R>
+  onTransition: (callbacks: OnTransitionParams<any, any>) => void
 }
 
-export const promiseOptionMiddleware: Middleware<any, any> = (store: any) => (next: any) => (
-  action: any
-) => {
-  if (!action.promise) {
+export interface PromiseAction<T> extends Action<string> {
+  promise: Promise<T>
+}
+
+export interface PromisedStateAction<T> extends Action<string> {
+  promisedState: PromisedState<T>
+}
+
+export type InActionTypes<P, M = undefined> = PromiseAction<P> | FluxStandardAction<P, M>
+export type OutActionTypes<P, M = undefined> = PromisedStateAction<P> | FluxStandardAction<P, M>
+
+function isPromiseAction(action: AnyAction): action is PromiseAction<any> {
+  return action.promise !== undefined
+}
+
+export const promiseOptionMiddleware = <
+  P,
+  M = undefined,
+  D extends Dispatch<OutActionTypes<P, M>> = Dispatch<OutActionTypes<P, M>>
+>(
+  store: MiddlewareAPI
+) => (next: D) => (action: InActionTypes<P, M>) => {
+  if (!isPromiseAction(action)) {
     next(action)
     return
   }
 
-  if (action.promise && action.payload) {
+  // Useless check if typescript is used - we have a guaranteed PromiseAction at this point.
+  if (action.promise && (action as any).payload) {
     throw new Error('Either "promise" or "payload" may be provided in an action')
   }
 
+  // Useless check if typescript is used - we have a guaranteed PromiseAction at this point.
   if (!isPromise(action.promise)) {
     throw new Error('Action property "promise" must be a promise or undefined')
   }
@@ -41,31 +61,31 @@ export const promiseOptionMiddleware: Middleware<any, any> = (store: any) => (ne
 
   next({
     ...actionWithoutPromise,
-    payload: {
+    promisedState: {
       unsafeResult: null,
       state: PromiseOptionState.Running,
-      onTransition: (callbacks: ApplyFuncParams<any, any>) => callbacks.running()
+      onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.running()
     }
   })
 
-  action.promise
-    .then((result: any) => {
+  promise
+    .then((result: P) => {
       store.dispatch({
         ...actionWithoutPromise,
-        payload: {
+        promisedState: {
           unsafeResult: result,
           state: PromiseOptionState.Finished,
-          onTransition: (callbacks: ApplyFuncParams<any, any>) => callbacks.finished(result)
+          onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.finished(result)
         }
       })
     })
     .catch(() => {
       store.dispatch({
         ...actionWithoutPromise,
-        payload: {
+        promisedState: {
           unsafeResult: null,
           state: PromiseOptionState.Failed,
-          onTransition: (callbacks: ApplyFuncParams<any, any>) => callbacks.failed()
+          onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.failed()
         }
       })
     })
