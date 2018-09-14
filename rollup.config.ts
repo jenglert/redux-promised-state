@@ -7,7 +7,7 @@ import json from 'rollup-plugin-json'
 
 const pkg = require('./package.json')
 
-const libraryName = 'redux-promise-option'
+const libraryName = 'redux-promised-state'
 
 export default {
   input: `src/${libraryName}.ts`,

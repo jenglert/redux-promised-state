@@ -1,8 +1,8 @@
 import isPromise from 'is-promise'
 import { Dispatch, MiddlewareAPI, AnyAction, Action } from 'redux'
-import FluxStandardAction from './FluxStandardAction'
+import FluxStandardAction from 'flux-standard-action'
 
-export enum PromiseOptionState {
+export enum PromisedStateEnum {
   Running,
   Finished,
   Failed
@@ -16,7 +16,7 @@ export interface OnTransitionParams<T, R> {
 
 export interface PromisedState<T> {
   unsafeResult: T | null
-  state: PromiseOptionState
+  state: PromisedStateEnum
   onTransition: (callbacks: OnTransitionParams<any, any>) => void
 }
 
@@ -35,7 +35,7 @@ function isPromiseAction(action: AnyAction): action is PromiseAction<any> {
   return action.promise !== undefined
 }
 
-export const promiseOptionMiddleware = <
+export const promisedStateMiddleware = <
   P,
   M = undefined,
   D extends Dispatch<OutActionTypes<P, M>> = Dispatch<OutActionTypes<P, M>>
@@ -63,7 +63,7 @@ export const promiseOptionMiddleware = <
     ...actionWithoutPromise,
     promisedState: {
       unsafeResult: null,
-      state: PromiseOptionState.Running,
+      state: PromisedStateEnum.Running,
       onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.running()
     }
   })
@@ -74,7 +74,7 @@ export const promiseOptionMiddleware = <
         ...actionWithoutPromise,
         promisedState: {
           unsafeResult: result,
-          state: PromiseOptionState.Finished,
+          state: PromisedStateEnum.Finished,
           onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.finished(result)
         }
       })
@@ -84,7 +84,7 @@ export const promiseOptionMiddleware = <
         ...actionWithoutPromise,
         promisedState: {
           unsafeResult: null,
-          state: PromiseOptionState.Failed,
+          state: PromisedStateEnum.Failed,
           onTransition: (callbacks: OnTransitionParams<any, any>) => callbacks.failed()
         }
       })

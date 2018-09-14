@@ -1,0 +1,180 @@
+import { render } from "react-dom";
+
+/* eslint-disable */
+
+// Action creators
+const someApiCallStarted = () => ({ type: SOME_API_CALL_STARTED });
+const someApiCallFailed = err => ({
+    type: SOME_API_CALL_FAILED,
+    error: err,
+});
+const someApiCallFinished = apiResult => ({
+    type: SOME_API_CALL_FINISHED,
+    payload: apiResult,
+});
+
+// Reducer
+
+const initialState = { isLoading: true,
+    isError: false,
+    apiResult: null,
+};
+
+const myReducer = (state = initialState, action) => {
+    switch(action.type) {
+        case SOME_API_CALL_STARTED:
+            return {
+                ...state,
+                isLoading: true,
+                isError: false,
+                apiResult: null
+            }
+        case SOME_API_CALL_FAILED:
+            return {
+                ...state,
+                isLoading: false,
+                isError: true,
+                apiResult: null
+            }
+        case SOME_API_CALL_FINISHED:
+            return {
+                ...state,
+                isLoading: false,
+                isError: false,
+                apiResult: action.payload
+            }
+        default:
+            return state;
+    }
+};
+
+// Usage
+
+renderThings() { 
+    if (this.props.isLoading) {
+        return (<div>I'm Loading</div>);
+    } else if (this.props.isError) { 
+        return (<div>Ohoh@!</div>);
+    } else {
+        return (<SomeComponent value={this.props.apiResult} />)
+    }
+}
+
+// Usage - nested components
+
+renderThings() { 
+    if (this.props.isLoading) {
+        return (<div>I'm Loading</div>);
+    } else if (this.props.isError) { 
+        return (<div>Ohoh@!</div>);
+    } else {
+        return (<SomeComponent/>)
+    }
+}
+
+class SomeComponent extends Component { 
+    render() {
+        return (<div>{this.props.apiResult}</div>); 
+    }
+}
+
+// Sweet Usage
+
+const someApiCallPromised = apiCallPromise => ({
+    type: SOME_API_CALL_PROMISED,
+    promise: apiCallPromise,
+});
+
+// Middleware
+
+export const promisedStateMiddleware = store => next => action => {
+    if (!isPromise(action.promise)) {
+      next(action)
+      return
+    }
+  
+    next({
+      ...action,
+      promise: undefined,
+      promiseTuple: {
+          isStarted: true,
+          isFailed: false,
+          value: T,
+      }
+    })
+  
+    action.promise.then(result => {
+      store.disptach({
+        ...action,
+        promise: undefined,
+        promiseTuple: {
+            isStarted: true,
+            isFailed: false,
+            value: T,
+        }
+      });
+    }).catch(err => {
+        store.disptach({
+            ...action,
+            promise: undefined,
+            promiseTuple: {
+                isStarted: false,
+                isFailed: true,
+            }
+          });
+    });
+  }
+
+  // Middleware API
+
+enum PromiseTupleState { 
+    STARTED,
+    FINISHED,
+    FAILED,
+}
+
+interface PromiseTuple<T> { 
+    unsafeGetValue: T;
+    state: PromiseTupleState;
+    apply: <R>() => (
+        notFinished: () => R,
+        finished: (apiResult: T) => R,
+        failed: () => R,
+    )
+}
+
+/* tslint:disable */
+
+enum PromiseTupleState {
+    STARTED,
+    FINISHED,
+    FAILED,
+}
+
+interface PromiseTuple<T> {
+    unsafeGetValue: T;
+    state: PromiseTupleState;
+    apply: <R>(
+        notFinished: () => R,
+        finished: (apiResult: T) => R,
+        failed: () => R
+    ) => R;
+}
+
+const PromiseTupleProvider = ({value: any}) => (<div />);
+const that = {} as any;
+
+const whenFinished: any = () => {};
+const whenLoading: any = () => {};
+const whenFailed: any = () => {};
+const MyComponent: any = {};
+const MyLoadingState: any = {};
+const MyFailedState: any = {};
+
+render() (
+    <PromiseTupleProvider value={that.props.somePromiseOption}>
+        {whenFinished(MyComponent)}
+        {whenLoading(MyLoadingState)}
+        {whenFailed(MyFailedState)}
+    </PromiseTupleProvider>
+)

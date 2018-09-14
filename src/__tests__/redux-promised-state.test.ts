@@ -1,11 +1,11 @@
 import {
-  promiseOptionMiddleware,
-  PromiseOptionState,
+  PromisedStateEnum,
   OnTransitionParams,
   PromiseAction,
   OutActionTypes,
-  PromisedStateAction
-} from '../redux-promise-option'
+  PromisedStateAction,
+  promisedStateMiddleware
+} from '../redux-promised-state'
 import waitUntil from 'async-wait-until'
 import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux'
 import { createStandardAction, ActionType } from 'typesafe-actions'
@@ -13,14 +13,9 @@ import { createStandardAction, ActionType } from 'typesafe-actions'
 const standardPayloadAction = createStandardAction('SOME_TYPE')<string>()
 type StandardPayloadActionType = ActionType<typeof standardPayloadAction>
 
-interface IPromiseOption extends PromiseAction<string> {
-  type: 'PROMISE_TYPE'
-  promise: Promise<string>
-}
+type RootAction = StandardPayloadActionType | PromiseAction<string>
 
-type RootAction = StandardPayloadActionType | IPromiseOption
-
-describe('redux-promise-option', () => {
+describe('redux-promised-state', () => {
   it('should not mutate action w/o a promise', () => {
     const action = standardPayloadAction('some_payload')
 
@@ -36,7 +31,7 @@ describe('redux-promise-option', () => {
     }
 
     expect(() =>
-      promiseOptionMiddleware(mockStore)(mockNext)(action)
+      promisedStateMiddleware(mockStore)(mockNext)(action)
     ).toThrowErrorMatchingSnapshot()
   })
 
@@ -52,7 +47,7 @@ describe('redux-promise-option', () => {
   })
 
   it('should dispatch an initial Running action', () => {
-    const action: IPromiseOption = {
+    const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise<string>(() => null)
     }
@@ -63,7 +58,7 @@ describe('redux-promise-option', () => {
   })
 
   it('should dispatch a failed action', async () => {
-    const action: IPromiseOption = {
+    const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise((resolve, reject) => reject('It went bad'))
     }
@@ -79,7 +74,7 @@ describe('redux-promise-option', () => {
   })
 
   it('should dispatch a success action', async () => {
-    const action: IPromiseOption = {
+    const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise(resolve => resolve('it went well'))
     }
@@ -101,10 +96,9 @@ describe('redux-promise-option', () => {
       type: 'PROMISE_TYPE',
       promisedState: {
         unsafeResult: null,
-        state: PromiseOptionState.Running
+        state: PromisedStateEnum.Running
       }
     })
-
     ;(actionToNext as PromisedStateAction<string>).promisedState.onTransition(onTransitionArgs)
     expect(onFailed).toHaveBeenCalledTimes(0)
     expect(onFinished).toHaveBeenCalledTimes(0)
@@ -147,6 +141,6 @@ describe('redux-promise-option', () => {
   })
 
   const runMiddleware = (action: RootAction) => {
-    promiseOptionMiddleware(mockStore)(mockNext)(action)
+    promisedStateMiddleware(mockStore)(mockNext)(action)
   }
 })
