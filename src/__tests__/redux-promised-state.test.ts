@@ -4,7 +4,8 @@ import {
   PromiseAction,
   OutActionTypes,
   PromisedStateAction,
-  promisedStateMiddleware
+  promisedStateMiddleware,
+  idlePromisedState
 } from '../redux-promised-state'
 import waitUntil from 'async-wait-until'
 import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux'
@@ -89,6 +90,23 @@ describe('redux-promised-state', () => {
     expect(onRunning).toHaveBeenCalledTimes(0)
   })
 
+  it('should throw an exception on invalid state', () => {
+    const promisedState: any = idlePromisedState('it is idle')
+    promisedState.state = 'badbadbad'
+
+    expect(() => promisedState.onTransition(onTransitionArgs)).toThrowError()
+  })
+
+  describe('idlePromisedState', () => {
+    it('should be in the idle state', () => {
+      const promisedState = idlePromisedState('it is idle')
+
+      promisedState.onTransition(onTransitionArgs)
+
+      expect(onIdle).toHaveBeenCalledTimes(1)
+    })
+  })
+
   // Mocks & Helpers
 
   const validateRunningActionDispatched = () => {
@@ -120,6 +138,7 @@ describe('redux-promised-state', () => {
   let onRunning: () => {}
   let onFinished: () => {}
   let onFailed: () => {}
+  let onIdle: () => {}
   let onTransitionArgs: OnTransitionParams<any, any>
 
   const mockNext: Dispatch<Action> = <A extends Action = AnyAction>(action: A) => {
@@ -133,7 +152,9 @@ describe('redux-promised-state', () => {
     onRunning = jest.fn()
     onFinished = jest.fn()
     onFailed = jest.fn()
+    onIdle = jest.fn()
     onTransitionArgs = {
+      idle: onIdle,
       running: onRunning,
       failed: onFailed,
       finished: onFinished

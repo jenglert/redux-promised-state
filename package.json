@@ -52,6 +52,7 @@
     },
     "testEnvironment": "node",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "testPathIgnorePatterns": ["/node_modules/", "/dist/"],
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -118,6 +119,7 @@
     "typescript": "^2.6.2"
   },
   "dependencies": {
+    "flux-standard-action": "^2.0.3",
     "is-promise": "^2.1.0",
     "redux": "^4.0.0",
     "save": "^2.3.2"
