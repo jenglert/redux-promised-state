@@ -26,7 +26,7 @@ export class PromisedState<T> implements IPromisedState<T> {
       default:
         return unhandledState<R>(this.state);
     }
-  };
+  }
 }
 
 export const idlePromisedState = <T>() => new PromisedState<T>(PromisedStateEnum.Idle, null);
