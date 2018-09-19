@@ -39,7 +39,7 @@ export const anActionWithAPromise = somePromise => ({
 
 You can then use your dispatched promise action as an action with `PromisedState`.  For example:
 
-
+```
 export const randomDogReducer = (state, action) => {
     if (action.type === SOME_ACTION_WITH_A_PROMISE_KEY) {
         console.log(action.promisedState);  // An instance of PromisedState
@@ -47,6 +47,7 @@ export const randomDogReducer = (state, action) => {
 
     return state;
 }
+```
 
 ### The PromisedState Class
 
