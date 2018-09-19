@@ -4,7 +4,7 @@ import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux';
 import { createStandardAction, ActionType } from 'typesafe-actions';
 import {
   PromiseAction,
-  OnTransitionParams,
+  WhenStateIsParams,
   OutActionTypes,
   PromisedStateEnum,
   PromisedStateAction
@@ -27,7 +27,7 @@ let onRunning: () => {};
 let onFinished: () => {};
 let onFailed: () => {};
 let onIdle: () => {};
-let onTransitionArgs: OnTransitionParams<any, any>;
+let whenStateIsArgs: WhenStateIsParams<any, any>;
 
 let actionToNext: OutActionTypes<string> | undefined;
 let dispatchedActions: any[] = [];
@@ -58,7 +58,7 @@ const validateRunningActionDispatched = () => {
       state: PromisedStateEnum.Running
     }
   });
-  (actionToNext as PromisedStateAction<string>).promisedState.onTransition(onTransitionArgs);
+  (actionToNext as PromisedStateAction<string>).promisedState.whenStateIs(whenStateIsArgs);
   expect(onFailed).toHaveBeenCalledTimes(0);
   expect(onFinished).toHaveBeenCalledTimes(0);
   expect(onRunning).toHaveBeenCalledTimes(1);
@@ -119,7 +119,7 @@ describe('redux-promised-state', () => {
 
     await waitUntil(() => dispatchedActions.length === 1, 100);
 
-    dispatchedActions[0].promisedState.onTransition(onTransitionArgs);
+    dispatchedActions[0].promisedState.whenStateIs(whenStateIsArgs);
     expect(onFailed).toHaveBeenCalledTimes(1);
     expect(onFinished).toHaveBeenCalledTimes(0);
     expect(onRunning).toHaveBeenCalledTimes(0);
@@ -134,7 +134,7 @@ describe('redux-promised-state', () => {
     runMiddleware(action);
 
     await waitUntil(() => dispatchedActions.length === 1, 100);
-    dispatchedActions[0].promisedState.onTransition(onTransitionArgs);
+    dispatchedActions[0].promisedState.whenStateIs(whenStateIsArgs);
     expect(dispatchedActions[0].promisedState.unsafeResult).toEqual('it went well');
     expect(onFailed).toHaveBeenCalledTimes(0);
     expect(onFinished).toHaveBeenCalledTimes(1);
@@ -145,14 +145,14 @@ describe('redux-promised-state', () => {
     const promisedState: any = idlePromisedState();
     promisedState.state = 'badbadbad';
 
-    expect(() => promisedState.onTransition(onTransitionArgs)).toThrowError();
+    expect(() => promisedState.WhenStateIs(whenStateIsArgs)).toThrowError();
   });
 
   describe('idlePromisedState', () => {
     it('should be in the idle state', () => {
       const promisedState = idlePromisedState();
 
-      promisedState.onTransition(onTransitionArgs);
+      promisedState.whenStateIs(whenStateIsArgs);
 
       expect(onIdle).toHaveBeenCalledTimes(1);
     });
@@ -165,7 +165,7 @@ describe('redux-promised-state', () => {
     onFinished = jest.fn();
     onFailed = jest.fn();
     onIdle = jest.fn();
-    onTransitionArgs = {
+    whenStateIsArgs = {
       idle: onIdle,
       running: onRunning,
       failed: onFailed,

@@ -8,7 +8,7 @@ export enum PromisedStateEnum {
   Failed
 }
 
-export interface OnTransitionParams<T, R> {
+export interface WhenStateIsParams<T, R> {
   idle: () => R;
   running: () => R;
   finished: (apiResult: T) => R;
@@ -18,7 +18,7 @@ export interface OnTransitionParams<T, R> {
 export interface IPromisedState<T> {
   unsafeResult: T | null;
   state: PromisedStateEnum;
-  onTransition: <R>(callbacks: OnTransitionParams<T, R>) => R;
+  whenStateIs: <R>(callbacks: WhenStateIsParams<T, R>) => R;
 }
 
 export interface PromiseAction<T> extends Action<string> {

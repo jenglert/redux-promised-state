@@ -1,4 +1,4 @@
-import { PromisedStateEnum, OnTransitionParams, IPromisedState } from './types';
+import { PromisedStateEnum, WhenStateIsParams, IPromisedState } from './types';
 
 export class PromisedState<T> implements IPromisedState<T> {
   unsafeResult: T | null = null;
@@ -9,7 +9,7 @@ export class PromisedState<T> implements IPromisedState<T> {
     this.state = state;
   }
 
-  onTransition = <R>(callbacks: OnTransitionParams<T, R>) => {
+  whenStateIs = <R>(callbacks: WhenStateIsParams<T, R>) => {
     switch (this.state) {
       case PromisedStateEnum.Idle:
         return callbacks.idle();
