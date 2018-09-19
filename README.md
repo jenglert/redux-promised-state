@@ -8,6 +8,7 @@
 
 ```
 npm i redux-promise-state
+```
 
 ## Usage
 
