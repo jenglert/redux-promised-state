@@ -1,15 +1,15 @@
-import {
-  PromisedStateEnum,
-  OnTransitionParams,
-  PromiseAction,
-  OutActionTypes,
-  PromisedStateAction,
-  promisedStateMiddleware,
-  idlePromisedState
-} from '../redux-promised-state';
+import { idlePromisedState } from '../PromisedState';
 import waitUntil from 'async-wait-until';
 import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux';
 import { createStandardAction, ActionType } from 'typesafe-actions';
+import {
+  PromiseAction,
+  OnTransitionParams,
+  OutActionTypes,
+  PromisedStateEnum,
+  PromisedStateAction
+} from '../types';
+import { promisedStateMiddleware } from '../promisedStateMiddleware';
 
 /**
  * Types used for test actions.

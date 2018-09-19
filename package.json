@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [],
-  "main": "dist/redux-promised-state.umd.js",
-  "module": "dist/redux-promised-state.es5.js",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es5.js",
   "typings": "dist/types/redux-promised-state.d.ts",
   "files": [
     "dist"

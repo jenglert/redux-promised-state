@@ -1,5 +1,5 @@
-import { Action } from 'redux'
-import { FluxStandardAction } from 'flux-standard-action'
+import { Action } from 'redux';
+import { FluxStandardAction } from 'flux-standard-action';
 
 export enum PromisedStateEnum {
   Idle,
@@ -9,25 +9,25 @@ export enum PromisedStateEnum {
 }
 
 export interface OnTransitionParams<T, R> {
-  idle: () => R
-  running: () => R
-  finished: (apiResult: T) => R
-  failed: () => R
+  idle: () => R;
+  running: () => R;
+  finished: (apiResult: T) => R;
+  failed: () => R;
 }
 
 export interface IPromisedState<T> {
-  unsafeResult: T | null
-  state: PromisedStateEnum
-  onTransition: <R>(callbacks: OnTransitionParams<T, R>) => R
+  unsafeResult: T | null;
+  state: PromisedStateEnum;
+  onTransition: <R>(callbacks: OnTransitionParams<T, R>) => R;
 }
 
 export interface PromiseAction<T> extends Action<string> {
-  promise: Promise<T>
+  promise: Promise<T>;
 }
 
 export interface PromisedStateAction<T> extends Action<string> {
-  promisedState: IPromisedState<T>
+  promisedState: IPromisedState<T>;
 }
 
-export type InActionTypes<P, M = undefined> = PromiseAction<P> | FluxStandardAction<P, M>
-export type OutActionTypes<P, M = undefined> = PromisedStateAction<P> | FluxStandardAction<P, M>
+export type InActionTypes<P, M = undefined> = PromiseAction<P> | FluxStandardAction<P, M>;
+export type OutActionTypes<P, M = undefined> = PromisedStateAction<P> | FluxStandardAction<P, M>;

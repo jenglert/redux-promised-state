@@ -1,49 +1,7 @@
-import isPromise from 'is-promise';
 import { Dispatch, MiddlewareAPI, AnyAction } from 'redux';
-import {
-  PromisedStateEnum,
-  PromisedStateAction,
-  OnTransitionParams,
-  PromiseAction,
-  OutActionTypes,
-  InActionTypes,
-  IPromisedState
-} from './types';
-
-class PromisedState<T> implements IPromisedState<T> {
-  unsafeResult: T | null = null;
-  state: PromisedStateEnum = PromisedStateEnum.Idle;
-
-  constructor(state: PromisedStateEnum, result: T | null) {
-    this.unsafeResult = result;
-    this.state = state;
-  }
-
-  onTransition = <R>(callbacks: OnTransitionParams<T, R>) => {
-    switch (this.state) {
-      case PromisedStateEnum.Idle:
-        return callbacks.idle();
-
-      case PromisedStateEnum.Running:
-        return callbacks.running();
-
-      case PromisedStateEnum.Finished:
-        return callbacks.finished(this.unsafeResult as T);
-
-      case PromisedStateEnum.Failed:
-        return callbacks.failed();
-
-      default:
-        return unhandledState<R>(this.state);
-    }
-  };
-}
-
-export const idlePromisedState = <T>() => new PromisedState<T>(PromisedStateEnum.Idle, null);
-
-function unhandledState<R>(state: never): R {
-  throw new Error(`Unhandled state ${state}`);
-}
+import { OutActionTypes, InActionTypes, PromiseAction, PromisedStateEnum } from './types';
+import isPromise from 'is-promise';
+import { PromisedState } from './PromisedState';
 
 function isPromiseAction(action: AnyAction): action is PromiseAction<any> {
   return action.promise !== undefined;
@@ -91,13 +49,4 @@ export const promisedStateMiddleware = <
         promisedState: new PromisedState(PromisedStateEnum.Failed, null)
       });
     });
-};
-
-export {
-  PromisedStateEnum,
-  OnTransitionParams,
-  PromiseAction,
-  OutActionTypes,
-  InActionTypes,
-  PromisedStateAction
 };
