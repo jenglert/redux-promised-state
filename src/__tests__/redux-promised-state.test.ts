@@ -6,49 +6,49 @@ import {
   PromisedStateAction,
   promisedStateMiddleware,
   idlePromisedState
-} from '../redux-promised-state'
-import waitUntil from 'async-wait-until'
-import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux'
-import { createStandardAction, ActionType } from 'typesafe-actions'
+} from '../redux-promised-state';
+import waitUntil from 'async-wait-until';
+import { AnyAction, Dispatch, Action, MiddlewareAPI } from 'redux';
+import { createStandardAction, ActionType } from 'typesafe-actions';
 
 /**
  * Types used for test actions.
  */
-const standardPayloadAction = createStandardAction('SOME_TYPE')<string>()
-type StandardPayloadActionType = ActionType<typeof standardPayloadAction>
+const standardPayloadAction = createStandardAction('SOME_TYPE')<string>();
+type StandardPayloadActionType = ActionType<typeof standardPayloadAction>;
 
-type RootAction = StandardPayloadActionType | PromiseAction<string>
+type RootAction = StandardPayloadActionType | PromiseAction<string>;
 
 /**
  * Mocks + helpers
  */
 
-let onRunning: () => {}
-let onFinished: () => {}
-let onFailed: () => {}
-let onIdle: () => {}
-let onTransitionArgs: OnTransitionParams<any, any>
+let onRunning: () => {};
+let onFinished: () => {};
+let onFailed: () => {};
+let onIdle: () => {};
+let onTransitionArgs: OnTransitionParams<any, any>;
 
-let actionToNext: OutActionTypes<string> | undefined
-let dispatchedActions: any[] = []
+let actionToNext: OutActionTypes<string> | undefined;
+let dispatchedActions: any[] = [];
 const mockStore: MiddlewareAPI = {
   dispatch: <A extends Action = AnyAction>(action: A) => {
-    dispatchedActions.push(action)
-    return action
+    dispatchedActions.push(action);
+    return action;
   },
   getState: () => {
-    throw new Error('not implemented')
+    throw new Error('not implemented');
   }
-}
+};
 
 const mockNext: Dispatch<Action> = <A extends Action = AnyAction>(action: A) => {
-  actionToNext = action
-  return action
-}
+  actionToNext = action;
+  return action;
+};
 
 const runMiddleware = (action: RootAction) => {
-  promisedStateMiddleware(mockStore)(mockNext)(action)
-}
+  promisedStateMiddleware(mockStore)(mockNext)(action);
+};
 
 const validateRunningActionDispatched = () => {
   expect(actionToNext).toMatchObject({
@@ -57,12 +57,12 @@ const validateRunningActionDispatched = () => {
       unsafeResult: null,
       state: PromisedStateEnum.Running
     }
-  })
-  ;(actionToNext as PromisedStateAction<string>).promisedState.onTransition(onTransitionArgs)
-  expect(onFailed).toHaveBeenCalledTimes(0)
-  expect(onFinished).toHaveBeenCalledTimes(0)
-  expect(onRunning).toHaveBeenCalledTimes(1)
-}
+  });
+  (actionToNext as PromisedStateAction<string>).promisedState.onTransition(onTransitionArgs);
+  expect(onFailed).toHaveBeenCalledTimes(0);
+  expect(onFinished).toHaveBeenCalledTimes(0);
+  expect(onRunning).toHaveBeenCalledTimes(1);
+};
 
 /**
  * Actual tests
@@ -70,106 +70,106 @@ const validateRunningActionDispatched = () => {
 
 describe('redux-promised-state', () => {
   it('should not mutate action w/o a promise', () => {
-    const action = standardPayloadAction('some_payload')
+    const action = standardPayloadAction('some_payload');
 
-    runMiddleware(action)
+    runMiddleware(action);
 
-    expect(actionToNext).toEqual(action)
-  })
+    expect(actionToNext).toEqual(action);
+  });
 
   it('should throw an exception if "promise" is not a promise', () => {
     const action: any = {
       type: 'SOME_TYPE',
       promise: 'not-a-promise'
-    }
+    };
 
     expect(() =>
       promisedStateMiddleware(mockStore)(mockNext)(action)
-    ).toThrowErrorMatchingSnapshot()
-  })
+    ).toThrowErrorMatchingSnapshot();
+  });
 
   it('should throw an exception if both payload and promise exist in action', () => {
     const action: any = {
       type: 'SOME_TYPE',
       payload: 'SOME_PAYLOAD',
       promise: new Promise(() => 'str')
-    }
+    };
 
-    expect(() => runMiddleware(action)).toThrowError()
-  })
+    expect(() => runMiddleware(action)).toThrowError();
+  });
 
   it('should dispatch an initial Running action', () => {
     const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise<string>(() => null)
-    }
+    };
 
-    runMiddleware(action)
+    runMiddleware(action);
 
-    validateRunningActionDispatched()
-  })
+    validateRunningActionDispatched();
+  });
 
   it('should dispatch a failed action', async () => {
     const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise((resolve, reject) => reject('It went bad'))
-    }
+    };
 
-    runMiddleware(action)
+    runMiddleware(action);
 
-    await waitUntil(() => dispatchedActions.length === 1, 100)
+    await waitUntil(() => dispatchedActions.length === 1, 100);
 
-    dispatchedActions[0].promisedState.onTransition(onTransitionArgs)
-    expect(onFailed).toHaveBeenCalledTimes(1)
-    expect(onFinished).toHaveBeenCalledTimes(0)
-    expect(onRunning).toHaveBeenCalledTimes(0)
-  })
+    dispatchedActions[0].promisedState.onTransition(onTransitionArgs);
+    expect(onFailed).toHaveBeenCalledTimes(1);
+    expect(onFinished).toHaveBeenCalledTimes(0);
+    expect(onRunning).toHaveBeenCalledTimes(0);
+  });
 
   it('should dispatch a success action', async () => {
     const action: PromiseAction<string> = {
       type: 'PROMISE_TYPE',
       promise: new Promise(resolve => resolve('it went well'))
-    }
+    };
 
-    runMiddleware(action)
+    runMiddleware(action);
 
-    await waitUntil(() => dispatchedActions.length === 1, 100)
-    dispatchedActions[0].promisedState.onTransition(onTransitionArgs)
-    expect(dispatchedActions[0].promisedState.unsafeResult).toEqual('it went well')
-    expect(onFailed).toHaveBeenCalledTimes(0)
-    expect(onFinished).toHaveBeenCalledTimes(1)
-    expect(onRunning).toHaveBeenCalledTimes(0)
-  })
+    await waitUntil(() => dispatchedActions.length === 1, 100);
+    dispatchedActions[0].promisedState.onTransition(onTransitionArgs);
+    expect(dispatchedActions[0].promisedState.unsafeResult).toEqual('it went well');
+    expect(onFailed).toHaveBeenCalledTimes(0);
+    expect(onFinished).toHaveBeenCalledTimes(1);
+    expect(onRunning).toHaveBeenCalledTimes(0);
+  });
 
   it('should throw an exception on invalid state', () => {
-    const promisedState: any = idlePromisedState()
-    promisedState.state = 'badbadbad'
+    const promisedState: any = idlePromisedState();
+    promisedState.state = 'badbadbad';
 
-    expect(() => promisedState.onTransition(onTransitionArgs)).toThrowError()
-  })
+    expect(() => promisedState.onTransition(onTransitionArgs)).toThrowError();
+  });
 
   describe('idlePromisedState', () => {
     it('should be in the idle state', () => {
-      const promisedState = idlePromisedState()
+      const promisedState = idlePromisedState();
 
-      promisedState.onTransition(onTransitionArgs)
+      promisedState.onTransition(onTransitionArgs);
 
-      expect(onIdle).toHaveBeenCalledTimes(1)
-    })
-  })
+      expect(onIdle).toHaveBeenCalledTimes(1);
+    });
+  });
 
   beforeEach(() => {
-    dispatchedActions = []
-    actionToNext = undefined
-    onRunning = jest.fn()
-    onFinished = jest.fn()
-    onFailed = jest.fn()
-    onIdle = jest.fn()
+    dispatchedActions = [];
+    actionToNext = undefined;
+    onRunning = jest.fn();
+    onFinished = jest.fn();
+    onFailed = jest.fn();
+    onIdle = jest.fn();
     onTransitionArgs = {
       idle: onIdle,
       running: onRunning,
       failed: onFailed,
       finished: onFinished
-    }
-  })
-})
+    };
+  });
+});
