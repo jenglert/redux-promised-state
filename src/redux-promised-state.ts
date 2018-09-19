@@ -1,29 +1,14 @@
 import isPromise from 'is-promise'
-import { Dispatch, MiddlewareAPI, AnyAction, Action } from 'redux'
-import { FluxStandardAction } from 'flux-standard-action'
-
-export enum PromisedStateEnum {
-  Idle,
-  Running,
-  Finished,
-  Failed
-}
-
-export const idlePromisedState = <T, R>(defaultValue: R) =>
-  new PromisedState(PromisedStateEnum.Idle, null)
-
-export interface OnTransitionParams<T, R> {
-  idle: () => R
-  running: () => R
-  finished: (apiResult: T) => R
-  failed: () => R
-}
-
-export interface IPromisedState<T> {
-  unsafeResult: T | null
-  state: PromisedStateEnum
-  onTransition: <R>(callbacks: OnTransitionParams<T, R>) => R
-}
+import { Dispatch, MiddlewareAPI, AnyAction } from 'redux'
+import {
+  PromisedStateEnum,
+  PromisedStateAction,
+  OnTransitionParams,
+  PromiseAction,
+  OutActionTypes,
+  InActionTypes,
+  IPromisedState
+} from './types'
 
 class PromisedState<T> implements IPromisedState<T> {
   unsafeResult: T | null = null
@@ -54,20 +39,11 @@ class PromisedState<T> implements IPromisedState<T> {
   }
 }
 
+export const idlePromisedState = <T>() => new PromisedState<T>(PromisedStateEnum.Idle, null)
+
 function unhandledState<R>(state: never): R {
   throw new Error(`Unhandled state ${state}`)
 }
-
-export interface PromiseAction<T> extends Action<string> {
-  promise: Promise<T>
-}
-
-export interface PromisedStateAction<T> extends Action<string> {
-  promisedState: IPromisedState<T>
-}
-
-export type InActionTypes<P, M = undefined> = PromiseAction<P> | FluxStandardAction<P, M>
-export type OutActionTypes<P, M = undefined> = PromisedStateAction<P> | FluxStandardAction<P, M>
 
 function isPromiseAction(action: AnyAction): action is PromiseAction<any> {
   return action.promise !== undefined
@@ -115,4 +91,13 @@ export const promisedStateMiddleware = <
         promisedState: new PromisedState(PromisedStateEnum.Failed, null)
       })
     })
+}
+
+export {
+  PromisedStateEnum,
+  OnTransitionParams,
+  PromiseAction,
+  OutActionTypes,
+  InActionTypes,
+  PromisedStateAction
 }
