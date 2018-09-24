@@ -1,6 +1,6 @@
 {
   "name": "redux-promised-state",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha",
   "description": "a redux middleware that maps Promise semantics to state semantics",
   "keywords": [
     "redux",
