@@ -1,18 +1,23 @@
 {
   "name": "redux-promised-state",
   "version": "0.0.0",
-  "description": "",
-  "keywords": [],
+  "description": "a redux middleware that maps Promise semantics to state semantics",
+  "keywords": [
+    "redux",
+    "promise",
+    "async",
+    "state"
+  ],
   "main": "dist/index.umd.js",
   "module": "dist/index.es5.js",
-  "typings": "dist/types/redux-promised-state.d.ts",
+  "typings": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],
   "author": "Jim Englert <englert.james@gmail.com>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/jenglert/redux-promised-state"
   },
   "license": "MIT",
   "engines": {
